@@ -1,5 +1,3 @@
-# tests/factories/expense_dto_factory.py
-
 import uuid
 
 import factory

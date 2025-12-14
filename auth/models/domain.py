@@ -5,19 +5,6 @@ from typing import Optional
 
 from auth.models.enums import UserRole
 
-# @dataclass
-# class ExpenseDTO:
-#     id: int | None = None
-#     date: datetime | None = None
-#     amount: float | None = None
-#     currency: str | None = None
-#     vendor: str | None = None
-#     category: str | None = None
-#     description: str | None = None
-#     created_at: datetime | None = None
-#     updated_at: datetime | None = None
-
-
 @dataclass
 class UserDTO:
     id: uuid.UUID | None = None
