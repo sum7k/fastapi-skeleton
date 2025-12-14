@@ -5,6 +5,7 @@ from fastapi.params import Depends
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
+from core.instrumentation import setup_db_metrics
 from core.settings import get_settings
 
 
@@ -13,6 +14,8 @@ class Base(DeclarativeBase):
 
 
 engine = create_async_engine(get_settings().db_url, echo=True)
+
+setup_db_metrics(engine.sync_engine)
 
 
 async def init_db() -> None:
