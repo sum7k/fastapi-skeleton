@@ -18,3 +18,16 @@ REQUEST_LATENCY = Histogram(
     ["method", "path", "status_code"],
     buckets=(0.05, 0.1, 0.2, 0.5, 1, 2, 5),
 )
+
+DB_QUERY_DURATION = Histogram(
+    "db_query_duration_seconds",
+    "Database query duration",
+    ["db_system", "operation", "method", "path"],
+    buckets=(0.005, 0.01, 0.05, 0.1, 0.2, 0.5, 1, 2),
+)
+
+DB_ERROR_COUNT = Counter(
+    "db_errors_total",
+    "Database query errors",
+    ["db_system", "operation", "method", "path"],
+)
