@@ -97,6 +97,9 @@ cp .env.example .env
 export JWT_SECRET_KEY="your-super-secret-key-here-min-32-chars"
 export DB_URL="postgresql+asyncpg://user:pass@localhost:5432/your_db_name"
 
+# Optional: Enable distributed tracing with OpenTelemetry
+export OTLP_ENDPOINT="http://localhost:4318/v1/traces"  # For Jaeger/OTLP collector
+
 # Generate a secure secret key with:
 openssl rand -hex 32
 ```
@@ -178,12 +181,19 @@ curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
 * Pre-configured CI/CD workflows
 * Make commands for common tasks
 
+### **Observability**
+
+* OpenTelemetry (OTEL) instrumentation
+* Distributed tracing with Jaeger support
+* Prometheus metrics
+* Structured logging with correlation IDs
+
 ### **Infrastructure Ready**
 
 * Docker support
-* Observability hooks
-* Structured logging
 * Environment-based configuration
+* Health check endpoints
+* Production-ready patterns
 
 fa-skeleton is designed to be forked, customized, and extended for your specific needs.
 
@@ -244,22 +254,47 @@ open http://localhost:8000/docs
 
 # 🧪 **Development Commands**
 
-## **Run tests**
+### **Core Commands**
 
 ```bash
-make test
+make dev          # Start development server with hot reload
+make test         # Run all tests with pytest
+make lint         # Run linting and formatting checks
+make setup        # Check required environment variables
 ```
 
-## **Run linting and formatting**
+### **Database Management**
 
 ```bash
-make lint
+make db-start     # Start PostgreSQL in Docker
+make db-stop      # Stop PostgreSQL container
+make db-restart   # Restart PostgreSQL container
+make db-logs      # View PostgreSQL logs
+make db-status    # Check database status
+make db-destroy   # Remove database container and data
+
+make migrate      # Run database migrations
+make migrate-create  # Create new migration (autogenerate)
+make migrate-downgrade  # Rollback last migration
 ```
 
-## **Start development server**
+### **Authentication Tokens**
 
 ```bash
-make dev
+make token        # Generate JWT token (default: dev@example.com, MEMBER)
+make token-admin  # Generate admin token (admin@example.com, ADMIN)
+```
+
+### **Observability - Jaeger Tracing**
+
+```bash
+make jaeger-start # Start Jaeger UI + OTLP collector
+make jaeger-stop  # Stop and remove Jaeger container
+make jaeger-logs  # View Jaeger logs
+
+# After starting Jaeger:
+# - UI: http://localhost:16686
+# - Set OTLP_ENDPOINT=http://localhost:4318/v1/traces
 ```
 
 ---
@@ -272,6 +307,7 @@ make dev
 | `POST`       | `/auth/token`       | Login and get JWT token        |
 | `GET`        | `/auth/me`          | Get current user info          |
 | `GET`        | `/health`           | Health check endpoint          |
+| `GET`        | `/metrics`          | Prometheus metrics             |
 
 OpenAPI docs available at:
 
@@ -284,21 +320,94 @@ http://localhost:8000/redoc
 
 # 📈 **Observability & Monitoring**
 
-fa-skeleton includes hooks for:
+fa-skeleton comes with production-ready observability powered by **OpenTelemetry**:
+
+### Distributed Tracing with OpenTelemetry
+
+* **Automatic instrumentation** for FastAPI, SQLAlchemy, and HTTP requests
+* **Console exporter** for development (traces logged to stdout)
+* **OTLP exporter** for production (configurable endpoint)
+* **Jaeger integration** - view traces in Jaeger UI
+* Automatic trace context propagation
+* Service name auto-detected from pyproject.toml
+
+**Configure OTLP endpoint** in `.env` (optional):
+```bash
+# Send traces to Jaeger, Tempo, or any OTLP collector
+export OTLP_ENDPOINT="http://localhost:4318/v1/traces"
+```
+
+**Run Jaeger locally** for trace visualization:
+```bash
+# Easy way - using make command
+make jaeger-start
+
+# Or manually with Docker
+docker run -d --name jaeger \
+  -p 16686:16686 \
+  -p 4318:4318 \
+  jaegertracing/all-in-one:latest
+
+# View traces at http://localhost:16686
+# Stop with: make jaeger-stop
+```
 
 ### Logging
 
-* Structured logging setup
+* Structured logging with correlation IDs
 * Request/response logging
-* Error tracking
-* Correlation IDs
+* Error tracking with full context
+* Trace context included in logs
 
-### Metrics
+### Metrics with Prometheus
 
-* Request duration
-* Error rates
-* Authentication attempts
-* Database query performance
+fa-skeleton automatically exposes **Prometheus-compatible metrics** at the `/metrics` endpoint.
+
+**Available Metrics:**
+* `request_count` - Total HTTP requests by method, path, and status code
+* `error_count` - Total 5xx errors by method, path, and status code
+* `request_latency_seconds` - HTTP request latency histogram
+* `db_query_duration_seconds` - Database query duration histogram
+* `db_errors_total` - Database query errors
+
+**View metrics:**
+```bash
+# Check metrics endpoint
+curl http://localhost:8000/metrics
+```
+
+**Integrate with Prometheus:**
+
+Create a `prometheus.yml` configuration:
+```yaml
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'fa-skeleton'
+    static_configs:
+      - targets: ['host.docker.internal:8000']
+```
+
+Run Prometheus:
+```bash
+docker run -d --name prometheus \
+  -p 9090:9090 \
+  -v $(pwd)/prometheus.yml:/etc/prometheus/prometheus.yml \
+  prom/prometheus
+
+# Prometheus UI: http://localhost:9090
+```
+
+**Visualize with Grafana:**
+```bash
+docker run -d --name grafana \
+  -p 3000:3000 \
+  grafana/grafana
+
+# Grafana UI: http://localhost:3000 (admin/admin)
+# Add Prometheus as data source: http://prometheus:9090
+```
 
 ### Health Checks
 
@@ -306,7 +415,7 @@ fa-skeleton includes hooks for:
 * Application health status
 * Dependency health
 
-Easily integrate with Prometheus, Grafana, DataDog, or your monitoring stack of choice.
+All observability features work seamlessly together for full-stack visibility.
 
 ---
 

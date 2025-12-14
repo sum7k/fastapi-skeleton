@@ -14,12 +14,15 @@ from core.middleware import CorrelationIdMiddleware, PrometheusMetricsMiddleware
 from core.readiness import check_db_readiness
 from core.security import RequireMember
 from core.settings import Settings, get_settings
+from core.tracing import setup_tracing
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 READINESS_TIMEOUT = 1.0  # seconds
 
 setup_logging()
-logger = structlog.get_logger()
+setup_tracing()
 
+logger = structlog.get_logger()
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -31,6 +34,8 @@ app = FastAPI(lifespan=lifespan)
 app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(PrometheusMetricsMiddleware)
 app.include_router(auth_router)
+
+FastAPIInstrumentor.instrument_app(app)
 
 
 @app.get("/health", tags=["infra"])

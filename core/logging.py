@@ -5,6 +5,21 @@ from structlog.contextvars import merge_contextvars
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 
+from opentelemetry import trace
+
+def add_trace_ids(_, __, event_dict):
+    span = trace.get_current_span()
+    if not span:
+        return event_dict
+
+    ctx = span.get_span_context()
+    if not ctx.is_valid:
+        return event_dict
+
+    event_dict["trace_id"] = format(ctx.trace_id, "032x")
+    event_dict["span_id"] = format(ctx.span_id, "016x")
+    return event_dict
+
 
 def setup_logging():
     logging.basicConfig(
@@ -14,7 +29,8 @@ def setup_logging():
 
     structlog.configure(
         processors=[
-            merge_contextvars,  # <-- critical
+            merge_contextvars,
+            add_trace_ids,
             structlog.processors.TimeStamper(fmt="iso"),
             # If log level is too low, abort pipeline and throw away log entry.
             structlog.stdlib.filter_by_level,

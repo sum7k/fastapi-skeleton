@@ -1,4 +1,4 @@
-.PHONY: dev test lint token setup migrate migrate-create migrate-downgrade db-start db-stop db-restart db-logs db-destroy db-status
+.PHONY: dev test lint token setup migrate migrate-create migrate-downgrade db-start db-stop db-restart db-logs db-destroy db-status jaeger-start jaeger-stop jaeger-logs
 
 # Run development server
 dev:
@@ -61,3 +61,22 @@ db-destroy:
 
 db-status:
 	@./scripts/local_dev_db.sh status
+
+# Jaeger management
+jaeger-start:
+	@echo "🚀 Starting Jaeger..."
+	@docker run -d --name jaeger \
+		-p 16686:16686 \
+		-p 4318:4318 \
+		jaegertracing/all-in-one:latest || echo "⚠️  Jaeger already running or failed to start"
+	@echo "✅ Jaeger UI: http://localhost:16686"
+	@echo "📡 OTLP endpoint: http://localhost:4318/v1/traces"
+
+jaeger-stop:
+	@echo "⏹️  Stopping Jaeger..."
+	@docker stop jaeger 2>/dev/null || echo "Container not running"
+	@docker rm jaeger 2>/dev/null || true
+	@echo "✅ Jaeger stopped"
+
+jaeger-logs:
+	@docker logs -f jaeger
