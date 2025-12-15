@@ -6,12 +6,12 @@ TDto = TypeVar("TDto")
 TModel = TypeVar("TModel")
 
 
-class IMapper(Protocol[TDto, TModel]):
+class IMapper(Protocol):
     """Protocol for mappers between DTOs and ORM models."""
 
-    def from_db(self, model: TModel) -> TDto: ...
+    def from_db(self, model: Any) -> Any: ...
 
-    def to_db(self, dto: TDto) -> TModel: ...
+    def to_db_new(self, dto: Any) -> Any: ...
 
 
 class IRepository(ABC, Generic[T]):

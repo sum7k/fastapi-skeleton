@@ -1,8 +1,6 @@
-
-
-from core.database import get_db_session_context
 from sqlalchemy import text
 
+from core.database import get_db_session_context
 from core.exceptions import ReadinessError
 
 

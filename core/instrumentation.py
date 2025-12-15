@@ -1,9 +1,10 @@
 import time
+
 from sqlalchemy import event
 from sqlalchemy.engine import Engine
 from structlog.contextvars import get_contextvars
 
-from core.metrics import DB_QUERY_DURATION, DB_ERROR_COUNT
+from core.metrics import DB_ERROR_COUNT, DB_QUERY_DURATION
 
 
 def get_operation(sql: str) -> str:
@@ -28,9 +29,7 @@ def setup_db_metrics(engine: Engine, db_system: str = "postgres"):
         context._operation = get_operation(statement)
 
     @event.listens_for(engine, "after_cursor_execute")
-    def after_cursor_execute(
-        conn, cursor, statement, parameters, context, executemany
-    ):
+    def after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
         duration = time.perf_counter() - context._query_start_time
 
         ctx = get_contextvars()

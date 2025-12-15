@@ -10,10 +10,22 @@ from core.settings import get_settings
 
 
 class Base(DeclarativeBase):
+    """Base class for all database models."""
+
     pass
 
 
-engine = create_async_engine(get_settings().db_url, echo=True)
+# Get database configuration
+settings = get_settings()
+db_config = settings.get_database_config()
+
+# Create async engine with configuration
+engine = create_async_engine(
+    db_config.url,
+    echo=db_config.echo,
+    pool_size=db_config.pool_size,
+    max_overflow=db_config.max_overflow,
+)
 
 setup_db_metrics(engine.sync_engine)
 

@@ -1,13 +1,13 @@
 from logging.config import fileConfig
 
-from core.database import Base
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context  # type: ignore[attr-defined]
-from core.settings import get_settings
 
 # Import all models here so Alembic can detect them for autogenerate
-from auth.models.db import User, Token  # noqa: F401
+from auth.models.db import Token, User  # noqa: F401
+from core.database import Base
+from core.settings import get_settings
 
 target_metadata = Base.metadata
 

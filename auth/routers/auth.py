@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from auth.models.schemas import AuthCreds, UserCreate, UserOut
+from auth.models.schemas import AuthCreds, MessageResponse, UserCreate, UserOut
 from auth.services.auth import AuthHeaderDep, AuthService, AuthServiceDep, CurUserDep
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -11,7 +11,6 @@ async def register_user_controller(
     user: UserCreate, auth_service: AuthService = AuthServiceDep
 ) -> UserOut:
     return await auth_service.register_user(user)
-    pass
 
 
 @router.post("/token")
@@ -25,10 +24,9 @@ async def login_for_access_token_controller(
 @router.post("/logout")
 async def logout_access_token_controller(
     credentials: AuthHeaderDep, auth_service=AuthServiceDep
-) -> dict:
-    print(credentials)
+) -> MessageResponse:
     await auth_service.logout(credentials)
-    return {"message": "Logged out"}
+    return MessageResponse(message="Successfully logged out")
 
 
 @router.get("/me")

@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-import structlog
+
 from main import app
 
 client = TestClient(app)

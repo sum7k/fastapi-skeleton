@@ -72,3 +72,13 @@ class TokenOut(TokenBase):
 class AuthCreds(BaseModel):
     email: str
     password: str
+
+
+class MessageResponse(BaseModel):
+    """Generic message response schema."""
+
+    message: str
+
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"message": "Operation completed successfully"}}
+    )
