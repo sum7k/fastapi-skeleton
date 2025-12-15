@@ -28,11 +28,11 @@ case "$1" in
         -p $POSTGRES_PORT:5432 \
         -v fa-skeleton-pgdata:/var/lib/postgresql/data \
         postgres:16-alpine
-      
+
       echo "⏳ Waiting for Postgres to be ready..."
       sleep 3
     fi
-    
+
     echo ""
     echo "✅ Postgres is running!"
     echo "📝 Connection string:"

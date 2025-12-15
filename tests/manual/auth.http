@@ -4,7 +4,7 @@ POST http://localhost:8000/auth/register HTTP/1.1
 content-type: application/json
 
 {
-  "email": "abc@def.com",
+  "email": "abcd@def.com",
   "password": "ab12@"
 }
 
@@ -15,7 +15,7 @@ POST http://localhost:8000/auth/token HTTP/1.1
 content-type: application/json
 
 {
-  "email": "abc@def.com",
+  "email": "abcd@def.com",
   "password": "ab12@"
 }
 

@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth.repositories.interfaces import IMapper, IRepository
+from core.db.interfaces import IMapper, IRepository
 
 TDto = TypeVar("TDto")
 TModel = TypeVar("TModel")
@@ -17,7 +17,7 @@ class Repository(IRepository[TDto], Generic[TDto, TModel]):
         self,
         session: AsyncSession,
         model_class: Type[TModel],
-        mapper: IMapper[TDto, TModel],
+        mapper: IMapper,
     ):
         self.session = session
         self._model_class = model_class
@@ -34,15 +34,23 @@ class Repository(IRepository[TDto], Generic[TDto, TModel]):
             entity = await self._get(uid)
         except NoResultFound:
             raise ValueError(f"No {self._model_class.__name__} found with id:{uid}")
-        return self.mapper.from_db(entity)
+        return self.mapper.from_db(entity)  # type: ignore[no-any-return]
 
-    async def create(self, record: TDto) -> TDto:
-        entity = self.mapper.to_db(record)
+    async def create(self, record: Any) -> TDto:
+        """Create a new entity from a Create DTO.
+
+        Args:
+            record: Create DTO (e.g., CreateUserDTO, CreateTokenDTO)
+
+        Returns:
+            Full DTO of the created entity
+        """
+        entity = self.mapper.to_db_new(record)
         self.session.add(entity)
         await self.session.flush()  # Flush to get the ID
         await self.session.refresh(entity)
         created_dto = self.mapper.from_db(entity)
-        return created_dto
+        return created_dto  # type: ignore[no-any-return]
 
     async def update(self, uid: Any, attrs: dict[str, Any]) -> TDto:
         try:
@@ -56,7 +64,7 @@ class Repository(IRepository[TDto], Generic[TDto, TModel]):
 
         await self.session.flush()
         await self.session.refresh(entity)
-        return self.mapper.from_db(entity)
+        return self.mapper.from_db(entity)  # type: ignore[no-any-return]
 
     async def delete(self, uid: int) -> None:
         try:

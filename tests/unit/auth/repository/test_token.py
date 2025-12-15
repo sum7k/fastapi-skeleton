@@ -8,7 +8,7 @@ from sqlalchemy.exc import NoResultFound
 from auth.models.db import Token
 from auth.repositories.auth import TokenRepository
 from tests.unit.conftest import ExecuteResult
-from tests.unit.factories import TokenDBFactory, TokenDTOFactory
+from tests.unit.factories import CreateTokenDTOFactory, TokenDBFactory, TokenDTOFactory
 
 
 def session_execute_returns(
@@ -60,22 +60,20 @@ async def test_get_non_existent_raise_error(session_mock):
 @pytest.mark.asyncio
 async def test_create_persists_and_returns_dto(session_mock):
     repo = TokenRepository(session_mock)
-    token_dto = TokenDTOFactory.create()
-    token_dto.id = None  # New tokens shouldn't have ID set
-    created_dto = await repo.create(token_dto)
+    create_token_dto = CreateTokenDTOFactory.create()
+    created_dto = await repo.create(create_token_dto)
     # Compare relevant fields (excluding id which is auto-generated)
-    assert token_dto.user_id == created_dto.user_id
-    assert token_dto.expires_at == created_dto.expires_at
-    assert token_dto.is_active == created_dto.is_active
-    assert token_dto.ip_address == created_dto.ip_address
+    assert create_token_dto.user_id == created_dto.user_id
+    assert create_token_dto.expires_at == created_dto.expires_at
+    assert create_token_dto.is_active == created_dto.is_active
+    assert create_token_dto.ip_address == created_dto.ip_address
 
 
 @pytest.mark.asyncio
 async def test_create_calls_session_methods_in_transaction(session_mock):
     repo = TokenRepository(session_mock)
-    token_dto = TokenDTOFactory.create()
-    token_dto.id = None
-    await repo.create(token_dto)
+    create_token_dto = CreateTokenDTOFactory.create()
+    await repo.create(create_token_dto)
     session_mock.add.assert_called_once()
     session_mock.refresh.assert_awaited()
     session_mock.refresh.assert_awaited_once()

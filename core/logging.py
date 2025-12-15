@@ -1,11 +1,16 @@
 import logging
-import os
+
 import structlog
+from opentelemetry import trace
 from structlog.contextvars import merge_contextvars
 
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+from core.settings import get_settings
 
-from opentelemetry import trace
+
+def get_log_level() -> str:
+    """Get log level from settings."""
+    return get_settings().log_level.upper()
+
 
 def add_trace_ids(_, __, event_dict):
     span = trace.get_current_span()
@@ -22,8 +27,11 @@ def add_trace_ids(_, __, event_dict):
 
 
 def setup_logging():
+    """Configure structured logging with OpenTelemetry trace integration."""
+    log_level = get_log_level()
+
     logging.basicConfig(
-        level=LOG_LEVEL,
+        level=log_level,
         format="%(message)s",
     )
 
@@ -60,7 +68,7 @@ def setup_logging():
                 }
             ),
             # Render the final event dict as JSON.
-            structlog.processors.JSONRenderer()
+            structlog.processors.JSONRenderer(),
         ],
         context_class=dict,
         logger_factory=structlog.stdlib.LoggerFactory(),

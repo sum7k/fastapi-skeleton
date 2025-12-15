@@ -12,4 +12,3 @@ GET {{baseUrl}}/ready HTTP/1.1
 ### Metrics
 # @name metrics
 GET {{baseUrl}}/metrics HTTP/1.1
-

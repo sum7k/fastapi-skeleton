@@ -8,7 +8,7 @@ from sqlalchemy.exc import NoResultFound
 from auth.models.db import User
 from auth.repositories.auth import UserRepository
 from tests.unit.conftest import ExecuteResult
-from tests.unit.factories import UserDBFactory, UserDTOFactory
+from tests.unit.factories import CreateUserDTOFactory, UserDBFactory, UserDTOFactory
 
 
 def session_execute_returns(
@@ -60,21 +60,19 @@ async def test_get_non_existent_raise_error(session_mock):
 @pytest.mark.asyncio
 async def test_create_persists_and_returns_dto(session_mock):
     repo = UserRepository(session_mock)
-    user_dto = UserDTOFactory.create()
-    user_dto.id = None  # New users shouldn't have ID set
-    created_dto = await repo.create(user_dto)
+    create_user_dto = CreateUserDTOFactory.create()
+    created_dto = await repo.create(create_user_dto)
     # Compare relevant fields (excluding id which is auto-generated)
-    assert user_dto.email == created_dto.email
-    assert user_dto.is_active == created_dto.is_active
-    assert user_dto.role == created_dto.role
+    assert create_user_dto.email == created_dto.email
+    assert create_user_dto.is_active == created_dto.is_active
+    assert create_user_dto.role == created_dto.role
 
 
 @pytest.mark.asyncio
 async def test_create_calls_session_methods_in_transaction(session_mock):
     repo = UserRepository(session_mock)
-    user_dto = UserDTOFactory.create()
-    user_dto.id = None
-    await repo.create(user_dto)
+    create_user_dto = CreateUserDTOFactory.create()
+    await repo.create(create_user_dto)
     session_mock.add.assert_called_once()
     session_mock.refresh.assert_awaited()
     session_mock.refresh.assert_awaited_once()
