@@ -5,6 +5,8 @@ from typing import Annotated, Any
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
+from opentelemetry import trace
+from opentelemetry.trace import Status, StatusCode
 from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -27,7 +29,6 @@ class PasswordService:
         self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     async def verify_password(self, password: str, hashed_password: str) -> bool:
-        """Verify a plain password against a hashed password."""
         result: bool = self.pwd_context.verify(password, hashed_password)
         return result
 
@@ -44,6 +45,8 @@ class TokenService:
     single responsibility principle.
     """
 
+    tracer = trace.get_tracer(__name__)
+
     def __init__(self, token_repository: TokenRepository, jwt_config: JWTConfig):
         self.token_repository = token_repository
         self.jwt_config = jwt_config
@@ -57,30 +60,37 @@ class TokenService:
         self, data: UserDTO, expires_delta: timedelta | None = None
     ) -> str:
         """Create a new JWT access token for a user."""
-        if expires_delta is None:
-            expires_delta = self.default_timedelta
-        expiry = datetime.now(timezone.utc) + expires_delta
+        with self.tracer.start_as_current_span("token.create_access_token") as span:
+            span.set_attribute("user.id", str(data.id))
 
-        # Create CreateTokenDTO with required fields
-        create_token_dto = CreateTokenDTO(
-            user_id=data.id,
-            expires_at=expiry,
-            is_active=True,
-        )
+            if expires_delta is None:
+                expires_delta = self.default_timedelta
+            expiry = datetime.now(timezone.utc) + expires_delta
+            span.set_attribute(
+                "auth.expires_minutes", expires_delta.total_seconds() / 60
+            )
 
-        created_token = await self.token_repository.create(create_token_dto)
-        token_id = created_token.id
+            # Create CreateTokenDTO with required fields
+            create_token_dto = CreateTokenDTO(
+                user_id=data.id,
+                expires_at=expiry,
+                is_active=True,
+            )
 
-        # Create JWT payload with all claims
-        serialized_data = {
-            "id": str(data.id),
-            "email": data.email,
-            "exp": int(expiry.timestamp()),
-            "iss": "fa-skeleton",
-            "sub": str(token_id),
-        }
-        encoded_jwt: str = jwt.encode(serialized_data, self.secret_key, self.algorithm)
-        return encoded_jwt
+            created_token = await self.token_repository.create(create_token_dto)
+            token_id = created_token.id
+
+            # Create JWT payload with all claims
+            serialized_data = {
+                "id": str(data.id),
+                "exp": int(expiry.timestamp()),
+                "iss": "fa-skeleton",
+                "sub": str(token_id),
+            }
+            encoded_jwt: str = jwt.encode(
+                serialized_data, self.secret_key, self.algorithm
+            )
+            return encoded_jwt
 
     async def deactivate(self, token_id_str: str) -> None:
         """Deactivate a token by ID."""
@@ -107,6 +117,8 @@ class TokenService:
 class AuthService:
     """Authentication service handling user registration, login, and token management."""
 
+    tracer = trace.get_tracer(__name__)
+
     def __init__(
         self,
         session: AsyncSession,
@@ -120,49 +132,64 @@ class AuthService:
         self.user_mapper = UserMapper
 
     async def register_user(self, user: UserCreate) -> UserOut:
-        if await self.user_repo.get_by_email(user.email):
-            raise AlreadyRegisteredException
-        hashed_password = await self.password_service.get_password_hash(user.password)
-        create_user_dto = CreateUserDTO(
-            email=user.email,
-            hashed_password=hashed_password,
-            role=user.role,
-            is_active=user.is_active,
-        )
-        user_dto = await self.user_repo.create(create_user_dto)
-        return UserOut(
-            email=user_dto.email,
-            id=user_dto.id,
-            created_at=user_dto.created_at,
-            updated_at=user_dto.updated_at,  # type: ignore
-        )
+        with self.tracer.start_as_current_span("auth.register") as span:
+            if await self.user_repo.get_by_email(user.email):
+                span.set_status(Status(StatusCode.ERROR, "User already registered"))
+                raise AlreadyRegisteredException
+            hashed_password = await self.password_service.get_password_hash(
+                user.password
+            )
+            create_user_dto = CreateUserDTO(
+                email=user.email,
+                hashed_password=hashed_password,
+                role=user.role,
+                is_active=user.is_active,
+            )
+            user_dto = await self.user_repo.create(create_user_dto)
+            span.set_status(Status(StatusCode.OK), "user_registered")
+
+            return UserOut(
+                email=user_dto.email,
+                id=user_dto.id,
+                created_at=user_dto.created_at,
+                updated_at=user_dto.updated_at,  # type: ignore
+            )
 
     async def authenticate_user(self, login_user: AuthCreds) -> TokenOut:
-        if not (user := await self.user_repo.get_by_email(login_user.email)):
-            raise UnauthorizedException
-        if not await self.password_service.verify_password(
-            login_user.password,
-            user.hashed_password,
-        ):
-            raise UnauthorizedException
-        jwt = await self.token_service.create_access_token(user)
-        return TokenOut(access_token=jwt)
+        with self.tracer.start_as_current_span("auth.authenticate") as span:
+            if not (user := await self.user_repo.get_by_email(login_user.email)):
+                span.set_status(Status(StatusCode.ERROR, "User not found"))
+                raise UnauthorizedException
+            if not await self.password_service.verify_password(
+                login_user.password,
+                user.hashed_password,
+            ):
+                span.set_status(Status(StatusCode.ERROR, "Invalid credentials"))
+                raise UnauthorizedException
+            jwt = await self.token_service.create_access_token(user)
+            span.set_status(Status(StatusCode.OK), "user_authenticated")
+            return TokenOut(access_token=jwt)
 
     async def get_current_user(self, token: TokenBase) -> UserOut:
-        payload = self.token_service.decode(token.access_token)
-        if not await self.token_service.validate(str(payload.get("sub"))):
-            raise UnauthorizedException
-        if not (email := payload.get("email")):
-            raise UnauthorizedException
-        if not (user_dto := await self.user_repo.get_by_email(email)):
-            raise UnauthorizedException
-        return UserOut(
-            email=user_dto.email,
-            id=user_dto.id,
-            role=user_dto.role,
-            created_at=user_dto.created_at,
-            updated_at=user_dto.updated_at,
-        )
+        with self.tracer.start_as_current_span("auth.current_user") as span:
+            payload = self.token_service.decode(token.access_token)
+            if not await self.token_service.validate(str(payload.get("sub"))):
+                span.set_status(Status(StatusCode.ERROR, "invalid_token"))
+                raise UnauthorizedException
+            if not (id := payload.get("id")):
+                span.set_status(Status(StatusCode.ERROR, "missing_user_id"))
+                raise UnauthorizedException
+            if not (user_dto := await self.user_repo.get(id)):
+                span.set_status(Status(StatusCode.ERROR, "user_not_found"))
+                raise UnauthorizedException
+            span.set_status(Status(StatusCode.OK), "user_authenticated")
+            return UserOut(
+                email=user_dto.email,
+                id=user_dto.id,
+                role=user_dto.role,
+                created_at=user_dto.created_at,
+                updated_at=user_dto.updated_at,
+            )
 
     async def logout(self, credentials: HTTPAuthorizationCredentials) -> None:
         payload = self.token_service.decode(credentials.credentials)

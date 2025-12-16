@@ -23,8 +23,23 @@ def setup_tracing():
 
     # 2️⃣ Optional OTLP exporter (collector, Tempo, etc.)
     if otlp_endpoint != "":
-        provider.add_span_processor(
-            BatchSpanProcessor(OTLPSpanExporter(endpoint=otlp_endpoint))
-        )
+        try:
+            # For proto.http exporter, provide full URL including /v1/traces
+            endpoint = (
+                otlp_endpoint
+                if otlp_endpoint.endswith("/v1/traces")
+                else f"{otlp_endpoint}/v1/traces"
+            )
+            provider.add_span_processor(
+                BatchSpanProcessor(OTLPSpanExporter(endpoint=endpoint))
+            )
+        except Exception as e:
+            # Log warning but don't fail - OTLP endpoint might not be available
+            import structlog
+
+            logger = structlog.get_logger()
+            logger.warning(
+                "otlp_exporter_unavailable", endpoint=otlp_endpoint, error=str(e)
+            )
 
     trace.set_tracer_provider(provider)

@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from typing import Annotated, AsyncGenerator
 
 from fastapi.params import Depends
+from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
@@ -27,6 +28,7 @@ engine = create_async_engine(
     max_overflow=db_config.max_overflow,
 )
 
+SQLAlchemyInstrumentor().instrument(engine=engine.sync_engine)
 setup_db_metrics(engine.sync_engine)
 
 

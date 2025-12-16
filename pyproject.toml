@@ -47,6 +47,7 @@ opentelemetry-sdk = "^1.39.1"
 opentelemetry-exporter-otlp = "^1.39.1"
 opentelemetry-instrumentation-fastapi = "^0.60b1"
 opentelemetry-instrumentation-asgi = "^0.60b1"
+opentelemetry-instrumentation-sqlalchemy = "^0.60b1"
 
 [tool.poetry.group.dev.dependencies]
 httpx = "^0.24.1"
