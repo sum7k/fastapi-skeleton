@@ -1,4 +1,4 @@
-@baseUrl = https://fa-skeleton.fly.dev
+@baseUrl = https://fastapi-skeleton.fly.dev
 
 ###
 # @name registerAPI

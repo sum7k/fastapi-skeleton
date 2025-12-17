@@ -4,7 +4,7 @@ set -e
 # Local development Postgres database container management
 # Usage: ./scripts/local_dev_db.sh [start|stop|restart|logs|destroy]
 
-CONTAINER_NAME="fa-skeleton-postgres"
+CONTAINER_NAME="fastapi-skeleton-postgres"
 POSTGRES_USER="postgres"
 POSTGRES_PASSWORD="postgres"
 POSTGRES_DB="fa_skeleton_dev"
@@ -26,7 +26,7 @@ case "$1" in
         -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
         -e POSTGRES_DB=$POSTGRES_DB \
         -p $POSTGRES_PORT:5432 \
-        -v fa-skeleton-pgdata:/var/lib/postgresql/data \
+        -v fastapi-skeleton-pgdata:/var/lib/postgresql/data \
         postgres:16-alpine
 
       echo "⏳ Waiting for Postgres to be ready..."
@@ -65,7 +65,7 @@ case "$1" in
     if [[ $REPLY =~ ^[Yy]$ ]]; then
       docker stop $CONTAINER_NAME 2>/dev/null || true
       docker rm $CONTAINER_NAME 2>/dev/null || true
-      docker volume rm fa-skeleton-pgdata 2>/dev/null || true
+      docker volume rm fastapi-skeleton-pgdata 2>/dev/null || true
       echo "✅ Container and data destroyed"
     else
       echo "❌ Cancelled"

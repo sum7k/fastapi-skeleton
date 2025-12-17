@@ -84,7 +84,7 @@ class TokenService:
             serialized_data = {
                 "id": str(data.id),
                 "exp": int(expiry.timestamp()),
-                "iss": "fa-skeleton",
+                "iss": "fastapi-skeleton",
                 "sub": str(token_id),
             }
             encoded_jwt: str = jwt.encode(

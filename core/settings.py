@@ -52,7 +52,7 @@ class DatabaseConfig(BaseSettings):
 class Settings(BaseSettings):
     """Application settings."""
 
-    service_name: str = "fa-skeleton"
+    service_name: str = "fastapi-skeleton"
     db_host: str = "localhost"
     db_port: int = 5432
     db_name: str = ""

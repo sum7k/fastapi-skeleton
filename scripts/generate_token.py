@@ -42,7 +42,7 @@ def generate_token(
         "role": role,
         "exp": int(expiry.timestamp()),
         "iat": int(datetime.now(timezone.utc).timestamp()),
-        "iss": "fa-skeleton",
+        "iss": "fastapi-skeleton",
     }
 
     token = jwt.encode(payload, settings.jwt_secret_key, algorithm="HS256")

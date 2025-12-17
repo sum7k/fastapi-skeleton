@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "fa-skeleton"
+name = "fastapi-skeleton"
 version = "0.1.0"
 description = "A FastAPI project skeleton with authentication, database integration, and observability."
 authors = ["Your Name <your.email@example.com>"]

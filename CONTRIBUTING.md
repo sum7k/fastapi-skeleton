@@ -1,9 +1,9 @@
-# **Contributing to fa-skeleton**
+# **Contributing to fastapi-skeleton**
 
-Thank you for your interest in contributing to **fa-skeleton**!
+Thank you for your interest in contributing to **fastapi-skeleton**!
 This project aims to provide a clean, production-ready FastAPI skeleton with **authentication**, **database migrations**, **observability hooks**, and **modern Python patterns**.
 
-Your contributions help improve this ecosystem and make fa-skeleton a useful resource for developers building production-ready FastAPI applications.
+Your contributions help improve this ecosystem and make fastapi-skeleton a useful resource for developers building production-ready FastAPI applications.
 
 ---
 
@@ -35,7 +35,7 @@ Contribute code, tests, or refactoring improvements following the guidelines bel
 
 # 🔧 **Project Standards & Expectations**
 
-fa-skeleton is meant to be **production-oriented**, so contributions should follow these principles:
+fastapi-skeleton is meant to be **production-oriented**, so contributions should follow these principles:
 
 ### **1. Keep architecture clean and modular**
 
@@ -184,5 +184,5 @@ To keep the project healthy:
 
 # 🛡️ **License**
 
-fa-skeleton is released into the **public domain**.
+fastapi-skeleton is released into the **public domain**.
 By submitting a contribution, you agree to release your changes under the same terms.

@@ -27,7 +27,7 @@ jobs:
           SAFE_BRANCH=$(echo "$BRANCH" \
             | tr '[:upper:]' '[:lower:]' \
             | sed 's#[^a-z0-9-]#-#g')
-          echo "app_name=fa-skeleton-$SAFE_BRANCH" >> $GITHUB_OUTPUT
+          echo "app_name=fastapi-skeleton-$SAFE_BRANCH" >> $GITHUB_OUTPUT
 
       - name: Create Fly app if missing
         run: |

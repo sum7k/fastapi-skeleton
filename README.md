@@ -1,8 +1,8 @@
-# **fa-skeleton — Production-Ready FastAPI Skeleton with Auth & Observability**
+# **fastapi-skeleton — Production-Ready FastAPI Skeleton with Auth & Observability**
 
-**fa-skeleton** is a **reusable FastAPI application skeleton** designed to jumpstart your next Python API project with enterprise-grade features built in from day one.
+**fastapi-skeleton** is a **reusable FastAPI application skeleton** designed to jumpstart your next Python API project with enterprise-grade features built in from day one.
 
-Stop starting from scratch. **fa-skeleton** provides:
+Stop starting from scratch. **fastapi-skeleton** provides:
 
 * JWT-based authentication with role-based access control
 * Database migrations with Alembic
@@ -13,11 +13,11 @@ Stop starting from scratch. **fa-skeleton** provides:
 
 Built with **FastAPI**, **SQLAlchemy**, and **PostgreSQL**, this skeleton follows best practices for maintainability, scalability, and security.
 
-Whether you're building an internal tool, a SaaS product, or a microservice, fa-skeleton gives you the foundation to focus on your business logic instead of boilerplate.
+Whether you're building an internal tool, a SaaS product, or a microservice, fastapi-skeleton gives you the foundation to focus on your business logic instead of boilerplate.
 
 ---
 
-# ⭐ **What fa-skeleton Provides**
+# ⭐ **What fastapi-skeleton Provides**
 
 ### 🔹 **1. Complete Authentication System**
 
@@ -85,7 +85,7 @@ Clean separation of concerns with dependency injection throughout.
 
 # 🔐 **Authentication**
 
-fa-skeleton uses **JWT (JSON Web Tokens)** for secure API authentication with role-based access control.
+fastapi-skeleton uses **JWT (JSON Web Tokens)** for secure API authentication with role-based access control.
 
 ### Required Environment Variables
 
@@ -198,7 +198,7 @@ curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
 * Health check endpoints
 * Production-ready patterns
 
-fa-skeleton is designed to be forked, customized, and extended for your specific needs.
+fastapi-skeleton is designed to be forked, customized, and extended for your specific needs.
 
 ---
 
@@ -207,8 +207,8 @@ fa-skeleton is designed to be forked, customized, and extended for your specific
 ## **1. Clone or fork the repository**
 
 ```bash
-git clone https://github.com/your-username/fa-skeleton.git
-cd fa-skeleton
+git clone https://github.com/your-username/fastapi-skeleton.git
+cd fastapi-skeleton
 ```
 
 ## **2. Install Poetry** (if not already installed)
@@ -332,7 +332,7 @@ http://localhost:8000/redoc
 
 # 📈 **Observability & Monitoring**
 
-fa-skeleton comes with production-ready observability powered by **OpenTelemetry**:
+fastapi-skeleton comes with production-ready observability powered by **OpenTelemetry**:
 
 ### Distributed Tracing with OpenTelemetry
 
@@ -373,7 +373,7 @@ docker run -d --name jaeger \
 
 ### Metrics with Prometheus
 
-fa-skeleton automatically exposes **Prometheus-compatible metrics** at the `/metrics` endpoint.
+fastapi-skeleton automatically exposes **Prometheus-compatible metrics** at the `/metrics` endpoint.
 
 **Available Metrics:**
 * `request_count` - Total HTTP requests by method, path, and status code
@@ -396,7 +396,7 @@ global:
   scrape_interval: 15s
 
 scrape_configs:
-  - job_name: 'fa-skeleton'
+  - job_name: 'fastapi-skeleton'
     static_configs:
       - targets: ['host.docker.internal:8000']
 ```
@@ -433,7 +433,7 @@ All observability features work seamlessly together for full-stack visibility.
 
 # � **CI/CD Pipeline**
 
-fa-skeleton includes a comprehensive CI/CD setup using **GitHub Actions**.
+fastapi-skeleton includes a comprehensive CI/CD setup using **GitHub Actions**.
 
 ### Continuous Integration ([.github/workflows/ci.yml](.github/workflows/ci.yml))
 
@@ -478,8 +478,8 @@ The CI pipeline runs on every push to `main`/`master` and on pull requests:
 │  1. Check if ENABLE_FLY_DEPLOY == 'true' (skip if not)          │
 │                                                                 │
 │  2. Branch name → App name mapping                              │
-│     └── main → fa-skeleton-main                                 │
-│     └── feature/xyz → fa-skeleton-feature-xyz                   │
+│     └── main → fastapi-skeleton-main                                 │
+│     └── feature/xyz → fastapi-skeleton-feature-xyz                   │
 │                                                                 │
 │  3. Auto-create Fly app if missing                              │
 │                                                                 │
@@ -507,7 +507,7 @@ The CI pipeline runs on every push to `main`/`master` and on pull requests:
 
 # 🧪 **Load Testing**
 
-fa-skeleton includes load tests using **k6** - a modern load testing tool.
+fastapi-skeleton includes load tests using **k6** - a modern load testing tool.
 
 ### Prerequisites
 
@@ -601,11 +601,11 @@ Key metrics to watch:
 
 ---
 
-# �📦 **Why fa-skeleton?**
+# �📦 **Why fastapi-skeleton?**
 
 Starting a new FastAPI project shouldn't mean writing the same authentication, database setup, and project structure over and over.
 
-**fa-skeleton gives you a head start** with production-ready patterns that have been battle-tested.
+**fastapi-skeleton gives you a head start** with production-ready patterns that have been battle-tested.
 
 Use it as:
 
@@ -636,9 +636,9 @@ This is free and unencumbered software released into the public domain.
 
 ---
 
-# 🌟 Extending fa-skeleton
+# 🌟 Extending fastapi-skeleton
 
-fa-skeleton is designed to be extended. Add your own features:
+fastapi-skeleton is designed to be extended. Add your own features:
 
 * Additional authentication providers (OAuth, SAML)
 * Rate limiting and throttling
