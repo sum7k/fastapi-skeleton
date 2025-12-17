@@ -1,4 +1,4 @@
-.PHONY: dev test lint token setup migrate migrate-create migrate-downgrade db-start db-stop db-restart db-logs db-destroy db-status jaeger-start jaeger-stop jaeger-logs
+.PHONY: dev test lint token setup migrate migrate-create migrate-downgrade db-start db-stop db-restart db-logs db-destroy db-status jaeger-start jaeger-stop jaeger-logs loadtest
 
 # Run development server
 dev:
@@ -7,6 +7,16 @@ dev:
 # Run tests
 test:
 	poetry run pytest
+
+# Run load tests with k6 (requires k6 installed: brew install k6)
+loadtest:
+	@echo "🔥 Running load tests against localhost:8000..."
+	@k6 run tests/loadtest/k6.js
+
+# Run load tests against a custom URL
+loadtest-url:
+	@read -p "Enter target URL: " url; \
+	k6 run -e BASE_URL="$$url" tests/loadtest/k6.js
 
 # Run database migrations
 migrate:
@@ -37,11 +47,13 @@ token-admin:
 setup:
 	@echo "Checking required environment variables..."
 	@[ -n "$$JWT_SECRET_KEY" ] && echo "✅ JWT_SECRET_KEY is set" || echo "❌ JWT_SECRET_KEY not set"
-	@[ -n "$$DB_URL" ] && echo "✅ DB_URL is set" || echo "❌ DB_URL not set"
+	@[ -n "$$DB_HOST" ] && echo "✅ DB_HOST is set" || echo "❌ DB_HOST not set"
+	@[ -n "$$DB_PORT" ] && echo "✅ DB_PORT is set" || echo "❌ DB_PORT not set"
+	@[ -n "$$DB_NAME" ] && echo "✅ DB_NAME is set" || echo "❌ DB_NAME not set"
+	@[ -n "$$DB_USER" ] && echo "✅ DB_USER is set" || echo "❌ DB_USER not set"
+	@[ -n "$$DB_PASSWORD" ] && echo "✅ DB_PASSWORD is set" || echo "❌ DB_PASSWORD not set"
 	@echo ""
-	@echo "If missing, set them with:"
-	@echo "  export JWT_SECRET_KEY='your-secret-key-min-32-chars'"
-	@echo "  export DB_URL='postgresql+asyncpg://user:pass@localhost/fa-skeleton-db'"
+	@echo "If missing, copy .env.example to .env and update values"
 
 # Database management
 db-start:

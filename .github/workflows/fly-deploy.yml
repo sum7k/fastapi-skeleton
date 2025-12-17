@@ -11,6 +11,8 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Only deploy if FLY_API_TOKEN secret is configured
+    if: ${{ vars.ENABLE_FLY_DEPLOY == 'true' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -25,21 +27,16 @@ jobs:
           SAFE_BRANCH=$(echo "$BRANCH" \
             | tr '[:upper:]' '[:lower:]' \
             | sed 's#[^a-z0-9-]#-#g')
-          echo "app_name=sk-skeleton-$SAFE_BRANCH" >> $GITHUB_OUTPUT
-
+          echo "app_name=fa-skeleton-$SAFE_BRANCH" >> $GITHUB_OUTPUT
 
       - name: Create Fly app if missing
         run: |
           APP="${{ steps.vars.outputs.app_name }}"
           flyctl apps list | grep -q "^$APP$" \
-            || LOG_LEVEL=debug flyctl apps create "$APP"
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+            || flyctl apps create "$APP"
 
       - name: Deploy
         run: |
-          LOG_LEVEL=debug flyctl deploy \
+          flyctl deploy \
             --app "${{ steps.vars.outputs.app_name }}" \
             --remote-only
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

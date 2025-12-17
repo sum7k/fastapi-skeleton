@@ -58,6 +58,9 @@ class Settings(BaseSettings):
     db_name: str = ""
     db_user: str = ""
     db_password: str = ""
+    db_url_override: str = (
+        ""  # Optional: Override constructed URL (for testing with SQLite)
+    )
     jwt_secret_key: str = ""
     otlp_endpoint: str = ""  # Jaeger OTLP endpoint
     log_level: str = "INFO"
@@ -71,7 +74,12 @@ class Settings(BaseSettings):
 
     @property
     def db_url(self) -> str:
-        """Construct database URL from individual components."""
+        """Construct database URL from individual components.
+
+        If db_url_override is set (e.g., for testing with SQLite), use that instead.
+        """
+        if self.db_url_override:
+            return self.db_url_override
         return f"postgresql+asyncpg://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
 
     def get_jwt_config(self) -> JWTConfig:

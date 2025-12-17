@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 
 import structlog
 from sqlalchemy import delete
+from sqlalchemy.engine import CursorResult
 
 from auth.models.db import Token
 from core.database import async_session
@@ -43,7 +44,7 @@ class TokenCleanupService:
 
                 # Delete expired tokens
                 stmt = delete(Token).where(Token.expires_at < now)
-                result = await session.execute(stmt)
+                result: CursorResult = await session.execute(stmt)  # type: ignore[assignment]
                 await session.commit()
 
                 deleted_count: int = result.rowcount or 0
@@ -83,9 +84,9 @@ class TokenCleanupService:
                 cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_to_keep)
 
                 stmt = delete(Token).where(
-                    not Token.is_active, Token.updated_at < cutoff_date
+                    Token.is_active == False, Token.updated_at < cutoff_date  # noqa: E712
                 )
-                result = await session.execute(stmt)
+                result: CursorResult = await session.execute(stmt)  # type: ignore[assignment]
                 await session.commit()
 
                 deleted_count: int = result.rowcount or 0

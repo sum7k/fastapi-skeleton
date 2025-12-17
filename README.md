@@ -303,6 +303,13 @@ make jaeger-logs  # View Jaeger logs
 # - Set OTLP_ENDPOINT=http://localhost:4318/v1/traces
 ```
 
+### **Load Testing**
+
+```bash
+make loadtest     # Run k6 load tests against localhost:8000
+make loadtest-url # Run load tests against a custom URL
+```
+
 ---
 
 # 📄 **Core API Endpoints**
@@ -425,7 +432,173 @@ All observability features work seamlessly together for full-stack visibility.
 
 ---
 
-# 📦 **Why fa-skeleton?**
+# � **CI/CD Pipeline**
+
+fa-skeleton includes a comprehensive CI/CD setup using **GitHub Actions**.
+
+### Continuous Integration ([.github/workflows/ci.yml](.github/workflows/ci.yml))
+
+The CI pipeline runs on every push to `main`/`master` and on pull requests:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        CI Pipeline                              │
+├─────────────────────────────────────────────────────────────────┤
+│  1. Setup Job                                                   │
+│     └── Cache Poetry dependencies for faster builds             │
+│                                                                 │
+│  2. Lint Job (parallel)                                         │
+│     ├── pre-commit hooks                                        │
+│     └── ruff check (fast Python linter)                         │
+│                                                                 │
+│  3. Type Check Job (parallel)                                   │
+│     └── mypy static type checking                               │
+│                                                                 │
+│  4. Test Job (parallel)                                         │
+│     ├── pytest with coverage                                    │
+│     └── Upload coverage to Codecov                              │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Key Features:**
+- **Dependency caching** - Poetry virtualenv cached for fast CI runs
+- **Parallel execution** - Lint, typecheck, and test jobs run concurrently
+- **SQLite for CI** - Uses in-memory SQLite to avoid PostgreSQL setup overhead
+- **Coverage reporting** - Automatic upload to Codecov
+
+### Continuous Deployment ([.github/workflows/fly-deploy.yml](.github/workflows/fly-deploy.yml))
+
+**Optional** automatic deployment to **Fly.io** on every push to any branch.
+
+> ⚠️ **This deployment is optional.** If `FLY_API_TOKEN` is not configured, the workflow will be skipped automatically. This allows forks to work without deployment failures.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     Deploy Pipeline                             │
+├─────────────────────────────────────────────────────────────────┤
+│  1. Check if FLY_API_TOKEN secret exists (skip if not)          │
+│                                                                 │
+│  2. Branch name → App name mapping                              │
+│     └── main → fa-skeleton-main                                 │
+│     └── feature/xyz → fa-skeleton-feature-xyz                   │
+│                                                                 │
+│  3. Auto-create Fly app if missing                              │
+│                                                                 │
+│  4. Deploy with flyctl                                          │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**To enable Fly.io deployment:**
+
+1. Create a Fly.io account at [fly.io](https://fly.io)
+2. Install flyctl and authenticate: `fly auth login`
+3. Get your API token: `fly tokens create deploy -x 999999h`
+4. Add `FLY_API_TOKEN` secret in GitHub repo settings:
+   - Go to **Settings → Secrets and variables → Actions**
+   - Click **New repository secret**
+   - Name: `FLY_API_TOKEN`, Value: your token
+
+**To disable:** Simply don't add the `FLY_API_TOKEN` secret - the workflow will skip automatically.
+
+---
+
+# 🧪 **Load Testing**
+
+fa-skeleton includes load tests using **k6** - a modern load testing tool.
+
+### Prerequisites
+
+Install k6:
+```bash
+# macOS
+brew install k6
+
+# Ubuntu/Debian
+sudo gpg -k
+sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+sudo apt-get update && sudo apt-get install k6
+
+# Docker
+docker pull grafana/k6
+```
+
+### Running Load Tests
+
+```bash
+# Start your server first
+make dev
+
+# Run load test against local server (default)
+k6 run tests/loadtest/k6.js
+
+# Run against a specific URL
+k6 run -e BASE_URL=https://your-app.fly.dev tests/loadtest/k6.js
+
+# Run with Docker
+docker run --rm -i --network host grafana/k6 run - <tests/loadtest/k6.js
+```
+
+### Load Test Configuration
+
+The default test configuration ([tests/loadtest/k6.js](tests/loadtest/k6.js)):
+
+| Setting | Value | Description |
+|---------|-------|-------------|
+| Virtual Users | 50 | Concurrent users |
+| Duration | 10s | Test duration |
+| Error threshold | <1% | Max acceptable error rate |
+| Latency threshold | p95 < 500ms | 95th percentile response time |
+
+### Customizing Load Tests
+
+Modify `tests/loadtest/k6.js` to add more scenarios:
+
+```javascript
+// Example: Test authenticated endpoints
+import http from "k6/http";
+import { check } from "k6";
+
+export const options = {
+  scenarios: {
+    health_check: {
+      executor: "constant-vus",
+      vus: 10,
+      duration: "30s",
+    },
+    auth_flow: {
+      executor: "ramping-vus",
+      startVUs: 0,
+      stages: [
+        { duration: "10s", target: 20 },
+        { duration: "20s", target: 50 },
+        { duration: "10s", target: 0 },
+      ],
+    },
+  },
+};
+```
+
+### Interpreting Results
+
+```
+✓ status is 200
+
+checks.........................: 100.00% ✓ 4500  ✗ 0
+http_req_duration..............: avg=12.34ms p(95)=45.67ms
+http_req_failed................: 0.00%   ✓ 0     ✗ 4500
+http_reqs......................: 4500    450/s
+vus............................: 50      min=50  max=50
+```
+
+Key metrics to watch:
+- **http_req_failed** - Should be <1% for healthy service
+- **http_req_duration p(95)** - 95th percentile latency
+- **http_reqs** - Requests per second throughput
+
+---
+
+# �📦 **Why fa-skeleton?**
 
 Starting a new FastAPI project shouldn't mean writing the same authentication, database setup, and project structure over and over.
 
