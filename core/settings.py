@@ -53,7 +53,11 @@ class Settings(BaseSettings):
     """Application settings."""
 
     service_name: str = "fa-skeleton"
-    db_url: str = ""
+    db_host: str = "localhost"
+    db_port: int = 5432
+    db_name: str = ""
+    db_user: str = ""
+    db_password: str = ""
     jwt_secret_key: str = ""
     otlp_endpoint: str = ""  # Jaeger OTLP endpoint
     log_level: str = "INFO"
@@ -64,6 +68,11 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
+
+    @property
+    def db_url(self) -> str:
+        """Construct database URL from individual components."""
+        return f"postgresql+asyncpg://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
 
     def get_jwt_config(self) -> JWTConfig:
         """Get JWT configuration from settings."""

@@ -95,7 +95,11 @@ cp .env.example .env
 
 # Or set manually:
 export JWT_SECRET_KEY="your-super-secret-key-here-min-32-chars"
-export DB_URL="postgresql+asyncpg://user:pass@localhost:5432/your_db_name"
+export DB_HOST="localhost"
+export DB_PORT="5432"
+export DB_NAME="your_db_name"
+export DB_USER="user"
+export DB_PASSWORD="pass"
 
 # Optional: Enable distributed tracing with OpenTelemetry
 export OTLP_ENDPOINT="http://localhost:4318/v1/traces"  # For Jaeger/OTLP collector
@@ -225,10 +229,12 @@ poetry install
 Create a `.env` file:
 
 ```
-DATABASE_URL=postgresql+asyncpg://user:pass@localhost:5432/your_db
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=your_db
+DB_USER=user
+DB_PASSWORD=pass
 JWT_SECRET_KEY=your-secret-key-here-min-32-chars
-JWT_ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
 ## **5. Run database migrations**
