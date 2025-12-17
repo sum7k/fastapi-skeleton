@@ -28,7 +28,6 @@ python scripts/generate_token.py --email user@example.com --hours 48
 - `ADMIN` - Administrative privileges
 - `MEMBER` - Standard user (default)
 - `VIEWER` - Read-only access
-- `API_KEY` - Programmatic access
 
 ### Requirements
 

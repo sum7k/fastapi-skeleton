@@ -156,7 +156,6 @@ curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
 - **ADMIN** - Administrative access
 - **MEMBER** - Standard user access
 - **VIEWER** - Read-only access
-- **API_KEY** - Programmatic access
 
 ---
 
@@ -470,13 +469,13 @@ The CI pipeline runs on every push to `main`/`master` and on pull requests:
 
 **Optional** automatic deployment to **Fly.io** on every push to any branch.
 
-> ⚠️ **This deployment is optional.** If `FLY_API_TOKEN` is not configured, the workflow will be skipped automatically. This allows forks to work without deployment failures.
+> ⚠️ **This deployment is optional.** If `ENABLE_FLY_DEPLOY` variable is not set to `true`, the workflow will be skipped automatically. This allows forks to work without deployment failures.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                     Deploy Pipeline                             │
 ├─────────────────────────────────────────────────────────────────┤
-│  1. Check if FLY_API_TOKEN secret exists (skip if not)          │
+│  1. Check if ENABLE_FLY_DEPLOY == 'true' (skip if not)          │
 │                                                                 │
 │  2. Branch name → App name mapping                              │
 │     └── main → fa-skeleton-main                                 │
@@ -494,11 +493,15 @@ The CI pipeline runs on every push to `main`/`master` and on pull requests:
 2. Install flyctl and authenticate: `fly auth login`
 3. Get your API token: `fly tokens create deploy -x 999999h`
 4. Add `FLY_API_TOKEN` secret in GitHub repo settings:
-   - Go to **Settings → Secrets and variables → Actions**
+   - Go to **Settings → Secrets and variables → Actions → Secrets**
    - Click **New repository secret**
    - Name: `FLY_API_TOKEN`, Value: your token
+5. Add `ENABLE_FLY_DEPLOY` variable to enable deployment:
+   - Go to **Settings → Secrets and variables → Actions → Variables**
+   - Click **New repository variable**
+   - Name: `ENABLE_FLY_DEPLOY`, Value: `true`
 
-**To disable:** Simply don't add the `FLY_API_TOKEN` secret - the workflow will skip automatically.
+**To disable:** Set `ENABLE_FLY_DEPLOY` to any value other than `true`, or delete the variable.
 
 ---
 
