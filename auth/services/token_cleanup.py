@@ -84,7 +84,8 @@ class TokenCleanupService:
                 cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_to_keep)
 
                 stmt = delete(Token).where(
-                    Token.is_active == False, Token.updated_at < cutoff_date  # noqa: E712
+                    Token.is_active == False,  # noqa: E712
+                    Token.updated_at < cutoff_date,  # noqa: E712
                 )
                 result: CursorResult = await session.execute(stmt)  # type: ignore[assignment]
                 await session.commit()
